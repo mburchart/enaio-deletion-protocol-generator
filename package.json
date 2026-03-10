@@ -1,0 +1,38 @@
+{
+  "name": "enaio-deletion-protocol-generator",
+  "version": "1.0.0",
+  "description": "Erzeugt ein Löschprotokoll aus enaio® MSSQL-Systemtabellen und schreibt CSV-Logs mit optionaler Fehlerbenachrichtigung per E-Mail.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/index.js",
+    "serve": "npm run build && npm run start",
+    "dev": "nodemon -L",
+    "nodemon": "npm run dev"
+  },
+  "author": "Marc Burchart",
+  "license": "Apache-2.0",
+  "keywords": [
+    "enaio",
+    "deletion-protocol",
+    "loeschprotokoll",
+    "audit-log",
+    "mssql",
+    "typescript",
+    "csv",
+    "nodemailer"
+  ],
+  "dependencies": {
+    "@xmldom/xmldom": "^0.8.11",
+    "dotenv": "^16.6.1",
+    "mssql": "^12.2.0",
+    "nodemailer": "^8.0.1",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/mssql": "^9.1.9",
+    "@types/node": "^24.10.9",
+    "@types/nodemailer": "^7.0.11",
+    "nodemon": "^3.0.0"
+  }
+}
