@@ -8,7 +8,7 @@ const logger = Logger.get();
 const DEFAULT_LOG_FILE_PATH = "./deletion_protocol.log";
 const CSV_HEADER =
   "DokumentenId;Schrankname;Vorgangsname;DokumentenBezeichnung;ErstelltAm;GelöschtAm;BenutzerId\n";
-const DATE_TIME_FORMAT: Intl.DateTimeFormatOptions = {
+const DATETIME_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
   timeZone: "Europe/Berlin",
   day: "2-digit",
   month: "2-digit",
@@ -17,7 +17,7 @@ const DATE_TIME_FORMAT: Intl.DateTimeFormatOptions = {
   minute: "2-digit",
   hour12: false,
 };
-const DATE_ONLY_FORMAT: Intl.DateTimeFormatOptions = {
+const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
@@ -43,12 +43,14 @@ type DeletionLogRow = {
   processName: string;
 };
 
-export default class RemoveLog {
-  private static instance: RemoveLog | null = null;
+export default class DeletionProtocolGenerator {
+  private static instance: DeletionProtocolGenerator | null = null;
 
-  public static getInstance(): RemoveLog {
+  private constructor() {}
+
+  public static getInstance(): DeletionProtocolGenerator {
     if (!this.instance) {
-      this.instance = new RemoveLog();
+      this.instance = new DeletionProtocolGenerator();
     }
     return this.instance;
   }
@@ -71,12 +73,12 @@ export default class RemoveLog {
       return "";
     }
     return new Date(timestamp * 1000)
-      .toLocaleString("de-DE", DATE_TIME_FORMAT)
+      .toLocaleString("de-DE", DATETIME_FORMAT_OPTIONS)
       .replace(",", "");
   }
 
   private static formatDateLabel(date: Date): string {
-    return date.toLocaleDateString("de-DE", DATE_ONLY_FORMAT);
+    return date.toLocaleDateString("de-DE", DATE_FORMAT_OPTIONS);
   }
 
   private static toDeletionLogRow(row: DeletionLogDatabaseRow): DeletionLogRow {
@@ -84,8 +86,8 @@ export default class RemoveLog {
       id: row.id,
       documentName: row.documentName ?? "",
       userId: row.userId ?? "",
-      createdAt: RemoveLog.formatTimestamp(row.createdAtUnix),
-      deletedAt: RemoveLog.formatTimestamp(row.deletedAtUnix),
+      createdAt: DeletionProtocolGenerator.formatTimestamp(row.createdAtUnix),
+      deletedAt: DeletionProtocolGenerator.formatTimestamp(row.deletedAtUnix),
       cabinetName: row.cabinetName,
       processName: row.processName ?? "",
     };
@@ -119,7 +121,7 @@ export default class RemoveLog {
       return;
     }
 
-    const csvRows = rows.map(RemoveLog.toCsvRow).join("\n").concat("\n");
+    const csvRows = rows.map(DeletionProtocolGenerator.toCsvRow).join("\n").concat("\n");
     fs.appendFileSync(logFilePath, csvRows);
 
     logger.info(
@@ -129,7 +131,7 @@ export default class RemoveLog {
 
   public async run(date: Date): Promise<void> {
     logger.info(
-      `Starte Löschprotokoll-Erstellung für den ${RemoveLog.formatDateLabel(date)}.`,
+      `Starte Löschprotokoll-Erstellung für den ${DeletionProtocolGenerator.formatDateLabel(date)}.`,
     );
     const rows = await this.getRowsForDay(date);
     this.appendRowsToLogFile(rows);
@@ -183,7 +185,7 @@ export default class RemoveLog {
   }
 
   public async getRowsForDay(date: Date): Promise<DeletionLogRow[]> {
-    const { startUnix, endUnix } = RemoveLog.getDayUnixRange(date);
+    const { startUnix, endUnix } = DeletionProtocolGenerator.getDayUnixRange(date);
     const schema = Config.readDeletionLogSchema();
     const sources = Config.readDeletionLogSources();
 
@@ -197,7 +199,7 @@ export default class RemoveLog {
     const rows = resultSets
       .flat()
       .sort((left, right) => (right.deletedAtUnix ?? 0) - (left.deletedAtUnix ?? 0))
-      .map(RemoveLog.toDeletionLogRow);
+      .map(DeletionProtocolGenerator.toDeletionLogRow);
 
     logger.info(`Abfrage abgeschlossen: ${rows.length} Löschungen insgesamt.`);
     return rows;

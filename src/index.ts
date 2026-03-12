@@ -2,7 +2,7 @@ import Logger from "./logger";
 import Config from "./config";
 import Email from "./email";
 import { Database } from "./db";
-import RemoveLog from "./remove-log";
+import DeletionProtocolGenerator from "./deletion-protocol-generator";
 
 const logger = Logger.get();
 
@@ -17,7 +17,7 @@ process.on("unhandledRejection", (reason) => {
   logger.error(`Unbehandelte Promise-Ablehnung: ${formatError(reason)}`);
 });
 
-class Index {
+class App {
   private static formatDate(date: Date): string {
     return date.toLocaleDateString("de-DE", {
       day: "2-digit",
@@ -33,12 +33,12 @@ class Index {
     targetDate.setDate(targetDate.getDate() - 1);
     targetDate.setHours(0, 0, 0, 0);
     logger.info(
-      `Verarbeite Löschungen für den ${Index.formatDate(targetDate)}.`,
+      `Verarbeite Löschungen für den ${App.formatDate(targetDate)}.`,
     );
 
     try {
-      const removeLog = RemoveLog.getInstance();
-      await removeLog.run(targetDate);
+      const generator = DeletionProtocolGenerator.getInstance();
+      await generator.run(targetDate);
       logger.info("Löschprotokoll wurde erfolgreich erstellt.");
     } catch (error) {
       logger.error(`Fehler im Programmablauf: ${formatError(error)}`);
@@ -78,5 +78,5 @@ class Index {
 }
 
 (async () => {
-  await Index.run();
+  await App.run();
 })();

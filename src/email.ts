@@ -6,7 +6,7 @@ const logger = Logger.get();
 
 export default class Email {
   private static instance: Email | null = null;
-  private transport: nodemailer.Transporter | null = null;
+  private transporter: nodemailer.Transporter | null = null;
 
   public static get(): Email {
     if (Email.instance) return Email.instance;
@@ -14,7 +14,7 @@ export default class Email {
     return Email.instance;
   }
 
-  constructor() {
+  private constructor() {
     const host = Config.readString("EMAIL_HOST", "");
     const port = Config.readNumber("EMAIL_PORT", 587);
     const secure = Config.readBoolean("EMAIL_SECURE", false);
@@ -22,7 +22,7 @@ export default class Email {
     const password = Config.readString("EMAIL_PASSWORD", "");
 
     if (host !== "" && user !== "" && password !== "") {
-      this.transport = nodemailer.createTransport({
+      this.transporter = nodemailer.createTransport({
         host,
         port,
         secure,
@@ -44,7 +44,7 @@ export default class Email {
     subject: string,
     text: string,
   ): Promise<void> {
-    if (!this.transport) {
+    if (!this.transporter) {
       logger.warn(
         "E-Mail-Versand übersprungen: E-Mail-Transport ist nicht konfiguriert.",
       );
@@ -53,7 +53,7 @@ export default class Email {
 
     try {
       const from = Config.readString("EMAIL_FROM", "");
-      await this.transport.sendMail({
+      await this.transporter.sendMail({
         from,
         to,
         subject,

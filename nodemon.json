@@ -1,6 +1,6 @@
 {
     "watch": ["src"],
     "exec": "tsc && node ./dist/index.js",
-    "ext": "js,json,ts,proto,vue",
+    "ext": "js,json,ts",
     "legacyWatch": true
 }
